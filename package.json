@@ -1,7 +1,7 @@
 {
-  "name": "audio-revert-game",
+  "name": "audio-reverse-game",
   "version": "0.0.1",
-  "description": "A game to guess reverted audio with yoour friends",
+  "description": "A game to guess reverse audio with your friends",
   "scripts": {
     "test": "exit 0",
     "build": "NODE_ENV=production webpack",

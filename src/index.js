@@ -16,41 +16,20 @@ document.body.append(document.createElement('br'))
 const audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
 const recorder = new Recorder(audioContext, {
-  // An array of 255 Numbers
-  // You can use this to visualize the audio stream
-  // If you use react, check out react-wave-stream
   //onAnalysed: data => console.log(data),
 })
 
-let isRecording = false
-window.blobby = null
-window.buffy = null
+var buffy = null
 
 navigator.mediaDevices
   .getUserMedia({ audio: true })
   .then(stream => recorder.init(stream))
   .catch(err => console.log('Uh oh... unable to get stream...', err))
 
-function startRecording() {}
-
-function stopRecording() {
-  return recorder.stop().then(({ blob, buffer }) => {
-    window.blobby = blob
-    window.buffy = buffer
-    console.log(blob)
-    console.log(buffer)
-    // buffer is an AudioBuffer
-  })
-}
-
-function download() {
-  Recorder.download(blob, 'my-audio-file') // downloads a .wav file
-}
-
 // https://stackoverflow.com/questions/29238549/playing-audio-backwards-with-htmlmediaelement
 function process() {
   var actx = audioContext
-  var soundbuffer = window.buffy
+  var soundbuffer = buffy
   var frameCount = soundbuffer[0].length - 1
   var buffer = actx.createBuffer(2, frameCount, actx.sampleRate)
   var src = actx.createBufferSource(), // enable using loaded data as source
@@ -99,23 +78,34 @@ btn.onclick = () => {
   console.log('start recording')
   recorder
     .start()
-    .then(() => (isRecording = true))
     .then(() => {
       btn.disabled = true
       btn2.disabled = false
     })
+    .catch(e => {
+      console.error(e)
+      alert('Couldnt start recording. pls try again')
+      btn.disabled = false
+      btn2.disabled = true
+    })
 }
 btn2.onclick = () => {
   console.log('finish recording')
-  stopRecording().then(() => {
-    const audioUrl = URL.createObjectURL(window.blobby)
-    const audio = new Audio(audioUrl)
-    console.log(audio)
-    //audio.audio.play()
-    process()
-    btn.disabled = false
-    btn2.disabled = true
-  })
+  return recorder
+    .stop()
+    .then(({ buffer }) => {
+      buffy = buffer
+      console.log(buffer)
+      process()
+      btn.disabled = false
+      btn2.disabled = true
+    })
+    .catch(e => {
+      console.error(e)
+      alert('Couldnt stop recording. pls try again')
+      btn.disabled = true
+      btn2.disabled = false
+    })
 }
 
 document.body.appendChild(btn)
