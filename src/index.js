@@ -28,41 +28,24 @@ navigator.mediaDevices
 
 // https://stackoverflow.com/questions/29238549/playing-audio-backwards-with-htmlmediaelement
 function process() {
-  var actx = audioContext
-  var soundbuffer = buffy
-  var frameCount = soundbuffer[0].length - 1
-  var buffer = actx.createBuffer(2, frameCount, actx.sampleRate)
-  var src = actx.createBufferSource(), // enable using loaded data as source
-    channel,
-    tmp,
-    i,
-    t = 0,
-    len,
-    len2
+  const frameCount = buffy[0].length - 1
+  const buffer = audioContext.createBuffer(
+    1,
+    frameCount,
+    audioContext.sampleRate
+  )
+  const src = audioContext.createBufferSource() // enable using loaded data as source
+  var channel
+  const reveredArray = buffy[0].reverse()
 
-  // reverse channels
-  while (t < buffer.numberOfChannels) {
-    // iterate each channel
-    channel = buffer.getChannelData(t) // get reference to a channel
-    for (var i = 0; i < frameCount; i++) {
-      // Math.random() is in [0; 1.0]
-      // audio needs to be in [-1.0; 1.0]
-      channel[i] = soundbuffer[t][i]
-    }
-    len = channel.length - 1 // end of buffer
-    len2 = len >>> 1 // center of buffer (integer)
-    for (i = 0; i < len2; i++) {
-      // loop to center
-      tmp = channel[len - i] // from end -> tmp
-      channel[len - i] = channel[i] // end = from beginning
-      channel[i] = tmp // tmp -> beginning
-    }
-    t += 1
+  channel = buffer.getChannelData(0) // get reference to a channel
+  for (var i = 0; i < frameCount; i++) {
+    channel[i] = reveredArray[i]
   }
 
   // play
   src.buffer = buffer
-  src.connect(actx.destination)
+  src.connect(audioContext.destination)
   if (!src.start) src.start = src.noteOn
   src.start(0)
 }
