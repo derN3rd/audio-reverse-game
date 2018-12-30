@@ -1,5 +1,5 @@
 // by https://stackoverflow.com/a/40364457
-export default blob =>
+export default (blob, audioContext) =>
   new Promise((resolve, reject) => {
     let fileReader = new FileReader()
     fileReader.onloadend = () => {
@@ -8,4 +8,4 @@ export default blob =>
     fileReader.onerror = reject
 
     fileReader.readAsArrayBuffer(blob)
-  })
+  }).then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))

@@ -37,71 +37,62 @@ class RecordPage extends React.Component {
   }
 
   requestUserMedia() {
-    console.log('requestUserMedia')
-    captureUserMedia(stream => {
-      console.log('stream', stream)
-    })
+    captureUserMedia(stream => {})
   }
 
   startRecord() {
     captureUserMedia(stream => {
-      //this.setState({ recordAudio: RecordRTC(stream, { type: 'audio' }) })
-      this.state.recordAudio = RecordRTC(stream, {
+      const recordAudio = RecordRTC(stream, {
         recorderType: MediaStreamRecorder,
         type: 'audio',
-        bitsPerSecond: 256 * 1024 * 8,
+        bitsPerSecond: 100 * 1000,
         desiredSampRate: 25 * 1000, // bits-per-sample * 1000
         disableLogs: config.isProduction,
       })
+      recordAudio.onStateChanged = state => {
+        console.log('calling setstate with', {
+          isRecording: state === 'recording',
+        })
+        this.setState({ isRecording: state === 'recording' })
+      }
+      this.setState({
+        recordAudio,
+      })
       this.state.recordAudio.startRecording()
-      this.setState({ isRecording: true })
     })
   }
 
   stopRecord() {
     this.state.recordAudio.stopRecording(() => {
-      let params = {
-        type: 'video/webm',
-        data: this.state.recordAudio.blob,
-        id: Math.floor(Math.random() * 90000) + 10000,
-      }
-      console.log(this.state.recordAudio)
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)()
+      blobToAudioArrayBuffer(
+        this.state.recordAudio.getBlob(),
+        audioContext
+      ).then(audioArrayBuffer => {
+        let src = audioContext.createBufferSource() // enable using loaded data as source
+        var channel, tmp, len, len2
 
-      blobToAudioArrayBuffer(this.state.recordAudio.getBlob()).then(
-        audioArrayBuffer => {
-          console.log(audioArrayBuffer, audioArrayBuffer.length)
-          const audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)()
-          const frameCount = audioArrayBuffer.length - 1
-          const buffer = audioContext.createBuffer(
-            1,
-            frameCount,
-            audioContext.sampleRate
-          )
-          const src = audioContext.createBufferSource() // enable using loaded data as source
-          var channel
-          const reveredArray = audioArrayBuffer.reverse()
-
-          channel = buffer.getChannelData(0) // get reference to a channel
-          for (var i = 0; i < frameCount; i++) {
-            channel[i] = reveredArray[i]
-          }
-
-          // play
-          src.buffer = buffer
-          src.connect(audioContext.destination)
-          if (!src.start) src.start = src.noteOn
-          src.start(0)
+        // from https://stackoverflow.com/a/29240615
+        channel = audioArrayBuffer.getChannelData(0) // get reference to a channel
+        len = channel.length - 1 // end of buffer
+        len2 = len >>> 1 // center of buffer (integer)
+        for (var i = 0; i < len2; i++) {
+          // loop to center
+          tmp = channel[len - i] // from end -> tmp
+          channel[len - i] = channel[i] // end = from beginning
+          channel[i] = tmp // tmp -> beginning
         }
-      )
 
-      const audioUrl = URL.createObjectURL(this.state.recordAudio.blob)
-      const audio = new Audio(audioUrl)
-      audio.play()
-
-      this.setState({ isRecording: false })
-
-      //TODO: play audio or send it to server
+        // play
+        this.state.recordAudio.destroy()
+        src.buffer = audioArrayBuffer
+        src.connect(audioContext.destination)
+        console.log(src)
+        if (!src.start) src.start = src.noteOn
+        src.start(0)
+        //TODO: play audio or send it to server
+      })
     })
   }
 
