@@ -1,0 +1,43 @@
+{
+  "name": "audio-reverse-game-server",
+  "version": "0.0.1",
+  "author": "Max \"derN3rd\" Fehmerling",
+  "description": "A game(server) to guess reversed audio with your friends",
+  "license": "GPL-2.0-only",
+  "keywords": [
+    "game",
+    "audio",
+    "html5",
+    "nodejs",
+    "guess",
+    "reverse"
+  ],
+  "homepage": "https://github.com/derN3rd/audio-reverse-game#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derN3rd/audio-reverse-game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/derN3rd/audio-reverse-game/issues"
+  },
+  "main": "src/server.js",
+  "scripts": {
+    "test": "exit 0",
+    "start": "node src/server.js",
+    "watch": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "apollo-server-express": "^2.3.1",
+    "express": "^4.16.4",
+    "graphql": "^14.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.9",
+    "prettier": "1.15.3"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
+}
